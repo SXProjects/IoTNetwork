@@ -7,8 +7,23 @@
 #include <optional>
 #include <iostream>
 #include <utility>
+#include <chrono>
 
 using Device = unsigned;
+using hclock = std::chrono::high_resolution_clock;
+using time_point = std::chrono::high_resolution_clock::time_point;
+using seconds = std::chrono::seconds;
+
+struct ChangeInfo {
+    time_point lastTransmitTime;
+    unsigned maxTransmitCount;
+    seconds maxTransmitTime;
+};
+
+struct HistoryInfo {
+    unsigned maxTransmitCount;
+    seconds maxTransmitTime;
+};
 
 class LocationTree {
 public:
@@ -67,12 +82,32 @@ public:
         return devices[device].deviceType;
     }
 
+    void setHistoryInfo(Device receiver, std::optional<HistoryInfo> info) {
+        devices[receiver].history = info;
+    }
+
+    void setChangeInfo(Device receiver, std::optional<ChangeInfo> info) {
+        devices[receiver].change = info;
+    }
+
+    std::optional<HistoryInfo> getHistoryInfo(Device receiver)
+    {
+        return devices[receiver].history;
+    }
+
+    std::optional<ChangeInfo> getChangeInfo(Device receiver)
+    {
+        return devices[receiver].change;
+    }
+
 private:
     struct DeviceData {
         bool active;
         std::string path;
         DeviceType deviceType;
         WorkMode workMode;
+        std::optional<ChangeInfo> change;
+        std::optional<HistoryInfo> history;
     };
 
     LocationTree locations;

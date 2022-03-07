@@ -7,6 +7,7 @@
 enum class DataType {
     Int,
     Float,
+    Bool,
 };
 
 using DeviceType = unsigned;
@@ -41,7 +42,7 @@ public:
         return workModes[workMode].name;
     }
 
-    std::vector<Indicator> enumerateIndicator(WorkMode workMode)
+    std::vector<Indicator> enumerateIndicators(WorkMode workMode)
     {
         return workModes[workMode].indicators;
     }

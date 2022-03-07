@@ -15,7 +15,6 @@ void LocationTree::addSubLocation(std::string_view location, Device newDevice) {
     // добавляем новое местоположение
     sub.emplace_back(location);
     sub.back().device = newDevice;
-    sub.back().base;
 }
 
 void LocationTree::findImpl(std::string_view location, std::vector<Device> &res,
