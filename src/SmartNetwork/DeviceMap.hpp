@@ -1,29 +1,18 @@
 #pragma once
 
 #include <string>
-#include "DeviceCapabilities.hpp"
+#include "Capabilities.hpp"
 #include <unordered_map>
 #include <memory>
 #include <optional>
 #include <iostream>
 #include <utility>
 #include <chrono>
-
 using Device = unsigned;
-using hclock = std::chrono::high_resolution_clock;
-using time_point = std::chrono::high_resolution_clock::time_point;
+using hclock = std::chrono::system_clock;
+using time_point = hclock::time_point;
 using seconds = std::chrono::seconds;
 
-struct ChangeInfo {
-    time_point lastTransmitTime;
-    unsigned maxTransmitCount;
-    seconds maxTransmitTime;
-};
-
-struct HistoryInfo {
-    unsigned maxTransmitCount;
-    seconds maxTransmitTime;
-};
 
 class LocationTree {
 public:
@@ -50,7 +39,7 @@ private:
 
 class DeviceMap {
 public:
-    DeviceMap() : locations("House") {}
+    DeviceMap(Capabilities *capabilities) : locations("House"), capabilities(capabilities) {}
 
     Device add(std::string_view location, DeviceType deviceType, WorkMode initMode);
 
@@ -82,35 +71,34 @@ public:
         return devices[device].deviceType;
     }
 
-    void setHistoryInfo(Device receiver, std::optional<HistoryInfo> info) {
-        devices[receiver].history = info;
+    void setLastAwakeTime(Device receiver, Parameter parameter, time_point time) {
+        devices[receiver].lastAwake[parameter] = time;
     }
 
-    void setChangeInfo(Device receiver, std::optional<ChangeInfo> info) {
-        devices[receiver].change = info;
+    time_point getLastAwakeTime(Device receiver, Parameter parameter) {
+        return devices[receiver].lastAwake[parameter];
     }
 
-    std::optional<HistoryInfo> getHistoryInfo(Device receiver)
-    {
-        return devices[receiver].history;
+    void setReceiveInstantly(Device receiver, bool val) {
+        devices[receiver].instantly = val;
     }
 
-    std::optional<ChangeInfo> getChangeInfo(Device receiver)
-    {
-        return devices[receiver].change;
+    bool getReceiveInstantly(Device receiver) {
+        return devices[receiver].instantly;
     }
 
 private:
     struct DeviceData {
-        bool active;
+        bool instantly;
         std::string path;
         DeviceType deviceType;
         WorkMode workMode;
-        std::optional<ChangeInfo> change;
-        std::optional<HistoryInfo> history;
+        std::vector<time_point> lastAwake;
+        bool active;
     };
 
     LocationTree locations;
     std::vector<DeviceData> devices;
+    Capabilities *capabilities;
 };
 

@@ -61,8 +61,7 @@ void LocationTree::findImpl(std::string_view location, std::vector<Device> &res,
                 return;
             }
         }
-    } else
-    {
+    } else {
         for (auto it = sub.begin(); it != sub.end(); ++it) {
             if (compare(it->base, root)) {
                 it->findImpl(location, res, root, match);
@@ -143,6 +142,9 @@ Device DeviceMap::add(std::string_view location, DeviceType deviceType, WorkMode
             location.data(),
             deviceType,
             initMode,
+            std::vector<time_point>(
+                    capabilities->enumerateParameters(deviceType).size(), time_point::min()),
+            true,
     });
     locations.addDevice(devices.back().path, devices.size() - 1);
     return devices.size() - 1;

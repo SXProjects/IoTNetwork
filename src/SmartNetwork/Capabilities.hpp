@@ -18,7 +18,7 @@ using Parameter = unsigned;
 
 using Indicator = unsigned;
 
-class DeviceCapabilities {
+class Capabilities {
 public:
     DeviceType addDeviceType(std::string_view name);
 

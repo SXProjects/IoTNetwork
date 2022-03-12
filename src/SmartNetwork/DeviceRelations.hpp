@@ -1,8 +1,8 @@
 #pragma once
 
 #include "DeviceMap.hpp"
-#include "DeviceCapabilities.hpp"
-#include "ServerConnection.hpp"
+#include "Capabilities.hpp"
+#include "ServerCommands.hpp"
 #include <variant>
 #include <algorithm>
 
@@ -59,45 +59,75 @@ struct std::hash<impl::ReceiveData> {
     }
 };
 
+enum class ApproxMode {
+    Min,
+    Max,
+    First,
+    Last,
+    Average,
+};
+
 class DeviceRelations {
 public:
-    explicit DeviceRelations(DeviceMap *map, DeviceCapabilities *capabilities, ServerConnection* connection) :
+    explicit DeviceRelations(DeviceMap *map, Capabilities *capabilities,
+            ServerCommands *connection) :
             map(map), capabilities(capabilities), connection(connection) {}
 
     void link(Device transmitter, Indicator indicator, Device receiver, Parameter parameter);
 
     void unlink(Device transmitter, Indicator indicator, Device receiver, Parameter parameter);
 
+    void parameterHistory(Device device, Parameter parameter, time_point from, time_point to,
+            seconds discreteInterval, ApproxMode approxMode);
+
+    void parameterHistory(Device device, Parameter parameter, time_point from,
+            seconds discreteInterval, ApproxMode approxMode);
+
+    void parameterHistory(Device device, Parameter parameter, time_point from, time_point to);
+
+    void parameterHistory(Device device, Parameter parameter, time_point from);
+
+    void indicatorHistory(Device device, Indicator indicator, time_point from, time_point to,
+            seconds discreteInterval, ApproxMode approxMode);
+
+    void indicatorHistory(Device device, Indicator indicator, time_point from,
+            seconds discreteInterval, ApproxMode approxMode);
+
+    void indicatorHistory(Device device, Indicator indicator, time_point from, time_point to);
+
+    void indicatorHistory(Device device, Indicator indicator, time_point from);
+
+    void changes(Device device, Parameter parameter,
+            seconds discreteInterval, ApproxMode approxMode);
+
+    void changes(Device device, Parameter parameter);
+
+    void awake(Device device, Parameter parameter);
+
     template<typename T>
     void transmit(Device transmitter, Indicator indicator, T data) {
         impl::TransmitData transmitData = {transmitter, indicator, map->getWorkMode(transmitter)};
 
         auto it = storage.find(transmitData);
-        auto time = std::chrono::high_resolution_clock::now();
 
         if (it != storage.end()) {
-            Timestamp<T> timestamp{data, time};
+            Timestamp<T> timestamp{data, hclock::now()};
             std::get<impl::TypeStorage<T>>(it->first.data).push_back(timestamp);
 
             // идём через все устройства, получающие команды немедленно
             for (auto r: it->second) {
-                if (!map->getChangeInfo(r.receiver) && map->getWorkMode(r.receiver) == r.workMode) {
-                    connection->send(r.receiver, r.parameter, timestamp);
+                if (map->getReceiveInstantly(r.receiver) &&
+                        map->getWorkMode(r.receiver) == r.workMode) {
+                    connection->transmit(r.receiver, r.parameter, timestamp);
                 }
             }
         }
     }
 
-    void power(Device receiver);
-
-    void awake(Device receiver);
-
 private:
-    void historyImpl(Device receiver, ChangeInfo changeInfo);
-
     DeviceMap *map;
-    DeviceCapabilities *capabilities;
-    ServerConnection *connection;
+    Capabilities *capabilities;
+    ServerCommands *connection;
     std::unordered_map<impl::TransmitData, std::vector<impl::ReceiveData>> storage;
     std::unordered_map<impl::ReceiveData, std::vector<impl::Storage *>> receiveDependencies;
 };
