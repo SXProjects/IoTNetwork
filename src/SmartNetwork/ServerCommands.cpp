@@ -1,7 +1,7 @@
 #include "ServerCommands.hpp"
 #include "DeviceRelations.hpp"
 
-std::string ServerCommands::timeAndDate(hclock::time_point now) {
+std::string timeAndDate(hclock::time_point now) {
     auto in_time_t = hclock::to_time_t(now);
 
     std::stringstream ss;
@@ -9,7 +9,7 @@ std::string ServerCommands::timeAndDate(hclock::time_point now) {
     return ss.str();
 }
 
-hclock::time_point ServerCommands::timePoint(const std::string &date) {
+hclock::time_point timePoint(const std::string &date) {
     std::tm tm = {};
     std::stringstream ss(date);
     ss >> std::get_time(&tm, "%Y-%b-%dT%H:%M:%S");
@@ -24,6 +24,7 @@ DataType parseDataType(const std::string &data) {
     } else if (data == "bool") {
         return DataType::Bool;
     }
+    throw std::runtime_error("invalid data type");
 }
 
 ApproxMode parseApprox(std::string const &mode) {
@@ -52,29 +53,40 @@ seconds parseInterval(std::string const &mode) {
     throw std::runtime_error("invalid approximation interval");
 }
 
-void ServerCommands::callback(Json json) {
-    auto command = json["command_name"].get<std::string>();
-    json.erase("command_name");
+void ServerCommands::transmitData(Json json) {
     auto id = json["device_id"].get<int>();
     json.erase("device_id");
 
-    if (command == "transmit_data") {
-        for (auto j: json) {
-            auto indicator = j[0].get<Indicator>();
-            auto const &val = j[1];
-            auto iType = capabilities->indicatorType(indicator);
+    for (auto j: json) {
+        auto indicator = j[0].get<Indicator>();
+        auto const &val = j[1];
+        auto iType = capabilities->indicatorType(indicator);
 
-            if (iType == DataType::Float) {
-                relations->transmit(id, indicator, val.get<float>());
-            }
-            if (iType == DataType::Int) {
-                relations->transmit(id, indicator, val.get<int>());
-            }
-            if (iType == DataType::Bool) {
-                relations->transmit(id, indicator, val.get<bool>());
-            }
+        if (iType == DataType::Float) {
+            relations->transmit(id, indicator, val.get<float>());
+        }
+        if (iType == DataType::Int) {
+            relations->transmit(id, indicator, val.get<int>());
+        }
+        if (iType == DataType::Bool) {
+            relations->transmit(id, indicator, val.get<bool>());
+        }
+}
+
+void ServerCommands::callback(Json json) {
+    auto command = json["command_name"].get<std::string>();
+    std::cout << "Accepted command: " << command << std::endl;
+    json.erase("command_name");
+
+    if (command == "transmit_data") {
+        transmitData(json);
+
+
+
         }
     } else if (command == "history") {
+
+        auto id = json["device_id"].get<int>();
         time_point startDate = timePoint(json["start_date"].get<std::string>());
 
         time_point endDate;
@@ -108,7 +120,6 @@ void ServerCommands::callback(Json json) {
                 relations->indicatorHistory(id, indicator, startDate, endDate, interval, approx);
             }
         }
-
         Json result;
         result["device_id"] = id;
         auto history = Json::array();
@@ -117,10 +128,13 @@ void ServerCommands::callback(Json json) {
             history.push_back(p.second);
         }
         json["history"] = history;
+        server->send(json);
     } else if (command == "add_device_type") {
         auto type = capabilities->addDeviceType(json["name"].get<std::string>());
-        for (auto const &wm: json["workModes"]) {
-            auto workMode = capabilities->addWorkMode(type, wm["name"].get<std::string>());
+        std::cout << json["name"].get<std::string>() << std::endl;
+        for (auto const &wm: json["work_modes"]) {
+            auto wmName = wm["name"].get<std::string>();
+            auto workMode = capabilities->addWorkMode(type, );
             if (wm.contains("parameters")) {
                 for (auto p: wm["parameters"]) {
                     capabilities->addParameter(workMode,
@@ -141,9 +155,27 @@ void ServerCommands::callback(Json json) {
         Json res;
         res["command"] = "system_info";
 
-        if (json.contains("wm_name")) {
-            res["wm_name"] = capabilities->workModeName(json["get_wm_name"].get<WorkMode>());
+        if (json.contains("work_modes")) {
+            DeviceType type = json["work_modes"].get<DeviceType>();
+            auto workModes = capabilities->enumerateWorkModes(type);
+            auto rWorkModes = res["work_modes"];
+            for(WorkMode wm : workModes)
+            {
+                rWorkModes.push_back(capabilities->workModeName(wm));
+            }
         }
+
+        if (json.contains("parameters")) {
+//            DeviceType type = json["parameters"].get<std::pair<Device, std::string>>();
+//
+//            auto workModes = capabilities->enumerateWorkModes(type);
+//            auto rWorkModes = res["work_modes"];
+//            for(WorkMode wm : workModes)
+//            {
+//                rWorkModes.push_back(capabilities->workModeName(wm));
+//            }
+        }
+
         if (json.contains("parameter_name")) {
             res["parameter_name"] = capabilities->parameterName(
                     json["parameter_name"].get<WorkMode>());
@@ -154,8 +186,10 @@ void ServerCommands::callback(Json json) {
         }
         if(json.contains("enumerate_parameters"))
         {
-            capabilities->enumerateParameters(json["enumerate_parameters"])
+            capabilities->enumerateParameters(json["enumerate_parameters"]);
         }
+
+        server->send(res);
     } else if (command == "add_device") {
         map->add(
                 json["location"].get<std::string>(),
@@ -165,3 +199,5 @@ void ServerCommands::callback(Json json) {
 
     server->success(command);
 }
+
+

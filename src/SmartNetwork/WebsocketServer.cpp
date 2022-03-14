@@ -29,7 +29,8 @@ void WebsocketServer::run(int port) {
         server.run();
     } catch (websocketpp::exception const &e) {
         std::cout << e.what() << std::endl;
-    } catch (...) {
+    } catch (std::exception const& e) {
         std::cout << "other exception" << std::endl;
+        std::cout << e.what() << std::endl;
     }
 }

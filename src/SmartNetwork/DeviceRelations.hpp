@@ -70,9 +70,13 @@ enum class ApproxMode {
 
 class DeviceRelations {
 public:
-    explicit DeviceRelations(DeviceMap *map, Capabilities *capabilities,
-            ServerCommands *connection) :
-            map(map), capabilities(capabilities), connection(connection) {}
+    explicit DeviceRelations(DeviceMap *map, Capabilities *capabilities) :
+            map(map), capabilities(capabilities) {}
+
+    void initConnection(ServerCommands *nconnection)
+    {
+        connection = nconnection;
+    }
 
     void link(Device transmitter, Indicator indicator, Device receiver, Parameter parameter);
 
@@ -90,13 +94,13 @@ public:
     void awake(Device device, Parameter parameter);
 
     template<typename T>
-    void transmit(Device transmitter, Indicator indicator, T data) {
+    void transmit(Device transmitter, Indicator indicator, T data, time_point time) {
         impl::TransmitData transmitData = {transmitter, indicator, map->getWorkMode(transmitter)};
 
         auto it = storage.find(transmitData);
 
         if (it != storage.end()) {
-            Timestamp<T> timestamp{data, hclock::now()};
+            Timestamp<T> timestamp{data, time};
             std::get<impl::TypeStorage<T>>(it->first.data).push_back(timestamp);
 
             // идём через все устройства, получающие команды немедленно
