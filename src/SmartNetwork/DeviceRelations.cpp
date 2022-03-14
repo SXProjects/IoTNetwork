@@ -157,31 +157,13 @@ void DeviceRelations::parameterHistory(Device receiver, Parameter parameter, tim
             history(result, data, from, to, discreteInterval, approxMode);
         }
         std::sort(result.begin(), result.end(), timeCmp);
-        connection->history(receiver, parameter, result);
+        connection->parameterHistory(receiver, parameter, result);
     }, resultStorage);
-}
-
-void DeviceRelations::parameterHistory(Device device, Parameter parameter, time_point from,
-        seconds discreteInterval, ApproxMode approxMode) {
-    parameterHistory(device, parameter, from, hclock::now(), discreteInterval, approxMode);
-}
-
-void DeviceRelations::parameterHistory(Device device, Parameter parameter, time_point from,
-        time_point to) {
-    parameterHistory(device, parameter, from, to, seconds(0), ApproxMode::First);
-}
-
-void DeviceRelations::parameterHistory(Device device, Parameter parameter, time_point from) {
-    parameterHistory(device, parameter, from, hclock::now());
-}
-
-void DeviceRelations::changes(Device device, Parameter parameter) {
-    parameterHistory(device, parameter, map->getLastAwakeTime(device, parameter));
 }
 
 void DeviceRelations::changes(Device device, Parameter parameter, seconds discreteInterval,
         ApproxMode approxMode) {
-    parameterHistory(device, parameter, map->getLastAwakeTime(device, parameter),
+    parameterHistory(device, parameter, map->getLastAwakeTime(device, parameter), hclock::now(),
             discreteInterval, approxMode);
 }
 
@@ -202,20 +184,6 @@ void DeviceRelations::indicatorHistory(Device device, Indicator indicator, time_
         using T = std::decay_t<decltype(data)>;
         T result{};
         history(result, data, from, to, discreteInterval, approxMode);
-        connection->history(device, indicator, result);
+        connection->indicatorHistory(device, indicator, result);
     }, it->first.data);
-}
-
-void DeviceRelations::indicatorHistory(Device device, Parameter parameter, time_point from,
-        seconds discreteInterval, ApproxMode approxMode) {
-    indicatorHistory(device, parameter, from, hclock::now(), discreteInterval, approxMode);
-}
-
-void DeviceRelations::indicatorHistory(Device device, Parameter parameter,
-        time_point from, time_point to) {
-    parameterHistory(device, parameter, from, to, seconds(0), ApproxMode::First);
-}
-
-void DeviceRelations::indicatorHistory(Device device, Parameter parameter, time_point from) {
-    parameterHistory(device, parameter, from, hclock::now());
 }

@@ -11,10 +11,13 @@ struct Timestamp {
     time_point time;
 };
 
+class DeviceRelations;
+
 class ServerCommands {
 public:
-    ServerCommands(WebsocketServer* server, DeviceMap *map, Capabilities *capabilities) :
-            map(map), capabilities(capabilities), initTime(hclock::now()), server(server) {
+    ServerCommands(WebsocketServer *server, DeviceMap *map, Capabilities *capabilities,
+            DeviceRelations *relations) : map(map), capabilities(capabilities),
+            initTime(hclock::now()), server(server), relations(relations) {
     }
 
     template<typename T>
@@ -22,37 +25,37 @@ public:
         Json json;
         json["device_id"] = receiver;
         json["command_name"] = "transmit_data";
-        json["time"] = time_and_date(val.time);
+        json["time"] = timeAndDate(val.time);
         json[std::to_string(parameter)] = val.val;
         server->send(json);
     }
 
     template<typename T>
-    void history(Device receiver, Parameter parameter, std::vector<Timestamp<T>> const &data) {
-
+    void parameterHistory(Device, Parameter parameter, std::vector<Timestamp<T>> const &data) {
+        for (auto t: data) {
+            currentHistory[t.time]["p" + std::to_string(parameter)] = t.val;
+        }
     }
 
+    template<typename T>
+    void indicatorHistory(Device, Parameter parameter, std::vector<Timestamp<T>> const &data) {
+        for (auto t: data) {
+            currentHistory[t.time]["i" + std::to_string(parameter)] = t.val;
+        }
+    }
+
+    void callback(Json json);
 
 private:
-    static std::string time_and_date(hclock::time_point now) {
-        auto in_time_t = hclock::to_time_t(now);
+    static std::string timeAndDate(hclock::time_point now);
 
-        std::stringstream ss;
-        ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %X");
-        return ss.str();
-    }
+    static hclock::time_point timePoint(std::string const &date);
 
-    void beginHistory(Device receiver, std::string_view command)
-    {
-
-    }
-
-    void endHistory(Device receiver);
-
-    WebsocketServer* server;
+    WebsocketServer *server;
     DeviceMap *map;
     Capabilities *capabilities;
+    DeviceRelations *relations;
     time_point initTime;
-    Json currentJson;
+    std::map<time_point, Json> currentHistory;
 };
 

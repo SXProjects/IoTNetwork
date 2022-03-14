@@ -2,9 +2,10 @@
 
 #include "DeviceMap.hpp"
 #include "Capabilities.hpp"
-#include "ServerCommands.hpp"
 #include <variant>
 #include <algorithm>
+#include "ServerCommands.hpp"
+
 
 namespace impl {
     template<typename T>
@@ -80,27 +81,11 @@ public:
     void parameterHistory(Device device, Parameter parameter, time_point from, time_point to,
             seconds discreteInterval, ApproxMode approxMode);
 
-    void parameterHistory(Device device, Parameter parameter, time_point from,
-            seconds discreteInterval, ApproxMode approxMode);
-
-    void parameterHistory(Device device, Parameter parameter, time_point from, time_point to);
-
-    void parameterHistory(Device device, Parameter parameter, time_point from);
-
     void indicatorHistory(Device device, Indicator indicator, time_point from, time_point to,
             seconds discreteInterval, ApproxMode approxMode);
 
-    void indicatorHistory(Device device, Indicator indicator, time_point from,
-            seconds discreteInterval, ApproxMode approxMode);
-
-    void indicatorHistory(Device device, Indicator indicator, time_point from, time_point to);
-
-    void indicatorHistory(Device device, Indicator indicator, time_point from);
-
     void changes(Device device, Parameter parameter,
             seconds discreteInterval, ApproxMode approxMode);
-
-    void changes(Device device, Parameter parameter);
 
     void awake(Device device, Parameter parameter);
 

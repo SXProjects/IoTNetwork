@@ -19,6 +19,16 @@ public:
         callback = std::move(f);
     }
 
+    void success(std::string const& command)
+    {
+        server.send(connection, "success " + command, websocketpp::frame::opcode::text);
+    }
+
+    void error(std::string const& command)
+    {
+        server.send(connection, "error " + command, websocketpp::frame::opcode::text);
+    }
+
 private:
     using Server = websocketpp::server<websocketpp::config::asio>;
 
