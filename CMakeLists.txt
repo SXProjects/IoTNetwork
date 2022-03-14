@@ -24,6 +24,3 @@ target_link_libraries(SmartNetwork PUBLIC websocketpp::websocketpp nlohmann_json
 
 add_executable(SmartNetworkRun app/main.cpp)
 target_link_libraries(SmartNetworkRun PUBLIC SmartNetwork)
-
-add_executable(Test app/test.cpp)
-target_link_libraries(Test PUBLIC SmartNetwork)

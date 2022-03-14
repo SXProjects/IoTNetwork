@@ -1,13 +1,14 @@
 #pragma once
 
-#include <string>
 #include "Capabilities.hpp"
+#include <string>
 #include <unordered_map>
 #include <memory>
 #include <optional>
 #include <iostream>
 #include <utility>
 #include <chrono>
+
 using Device = unsigned;
 using hclock = std::chrono::system_clock;
 using time_point = hclock::time_point;
@@ -45,19 +46,15 @@ public:
 
     std::vector<Device> find(std::string_view location, bool match = false);
 
+    Device removeDeviceType(DeviceType type);
+
     void remove(Device device);
 
     std::string_view getPath(Device device) {
         return devices[device].path;
     }
 
-    std::string_view getName(Device device);
-
-    std::string_view getLocation(Device device);
-
-    void setName(Device device, std::string_view name);
-
-    void setLocation(Device device, std::string_view location);
+    void setPath(Device device, std::string_view path);
 
     void setWorkMode(Device device, WorkMode workMode) {
         devices[device].workMode = workMode;

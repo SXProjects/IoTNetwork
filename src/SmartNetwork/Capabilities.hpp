@@ -22,6 +22,11 @@ class Capabilities {
 public:
     DeviceType addDeviceType(std::string_view name);
 
+    void removeDeviceType(DeviceType type)
+    {
+        deviceTypes[type].active = false;
+    }
+
     WorkMode addWorkMode(DeviceType deviceType, std::string_view name);
 
     Parameter addParameter(WorkMode workMode, std::string_view name, DataType type);
@@ -31,6 +36,13 @@ public:
     std::optional<DeviceType> findDeviceType(std::string_view name);
 
     std::optional<WorkMode> findWorkMode(DeviceType deviceType, std::string_view name);
+
+    std::vector<DeviceType> enumerateDeviceTypes();
+
+    std::string_view deviceTypeName(DeviceType type)
+    {
+        return deviceTypes[type].name;
+    }
 
     std::vector<WorkMode> enumerateWorkModes(DeviceType deviceType)
     {
@@ -80,6 +92,7 @@ private:
     struct DeviceTypeData {
         std::string name;
         std::vector<WorkMode> workModes;
+        bool active = false;
     };
 
     struct WorkModeData {

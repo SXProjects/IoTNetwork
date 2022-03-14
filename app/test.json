@@ -1,0 +1,110 @@
+[
+  {
+    "command_name": "add_device_type",
+    "name": "thermometer",
+    "work_modes": [
+      {
+        "name": "send_on_time",
+        "indicators": [
+          {
+            "name": "temperature",
+            "type": "float"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "send_seconds",
+            "type": "int"
+          }
+        ]
+      },
+      {
+        "name": "send_on_command",
+        "indicators": [
+          {
+            "name": "temperature",
+            "type": "float"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "send",
+            "type": "bool"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "command_name": "add_device_type",
+    "name": "lamp",
+    "work_modes": [
+      {
+        "name": "low_temperature_on",
+        "parameters": [
+          {
+            "name": "min_temperature",
+            "type": "float"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "command_name": "device_type_info"
+  },
+  {
+    "command_name": "add_device",
+    "location": "home/kitchen/thermometer1",
+    "device_type": "thermometer",
+    "work_mode": "send_on_time"
+  },
+  {
+    "command_name": "add_device",
+    "location": "home/kitchen/lamp1",
+    "device_type": "lamp",
+    "work_mode": "low_temperature_on"
+  },
+  {
+    "command_name": "add_device",
+    "location": "home/kitchen/lamp2",
+    "device_type": "lamp",
+    "work_mode": "low_temperature_on"
+  },
+  {
+    "command_name": "device_info"
+  },
+  {
+    "command_name": "link",
+    "transmitter": 0,
+    "indicator": "temperature",
+    "receiver": 1,
+    "parameter": "min_temperature"
+  },
+  {
+    "command_name": "link",
+    "transmitter": 0,
+    "indicator": "temperature",
+    "receiver": 2,
+    "parameter": "min_temperature"
+  },
+  {
+    "command_name": "transmit_data",
+    "device_id": 0,
+    "time": "2022-03-09T13:54:02",
+    "data": [
+      {
+        "name": "temperature",
+        "value": 24.5
+      }
+    ]
+  },
+  {
+    "command_name": "history",
+    "device_id": 0,
+    "start_date": "2000-03-09T00:00:00",
+    "indicator": [
+      "temperature"
+    ]
+  }
+]

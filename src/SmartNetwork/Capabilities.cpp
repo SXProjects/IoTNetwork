@@ -11,7 +11,7 @@ std::optional<DeviceType> Capabilities::findDeviceType(std::string_view name) {
 
 std::optional<WorkMode>
 Capabilities::findWorkMode(DeviceType deviceType, std::string_view name) {
-    for (auto workMode : deviceTypes[deviceType].workModes) {
+    for (auto workMode: deviceTypes[deviceType].workModes) {
         if (workModes[workMode].name == name) {
             return workMode;
         }
@@ -20,10 +20,8 @@ Capabilities::findWorkMode(DeviceType deviceType, std::string_view name) {
 }
 
 std::optional<Indicator> Capabilities::findIndicator(WorkMode workMode, std::string_view name) {
-    for(auto i : workModes[workMode].indicators)
-    {
-        if(indicators[i].name == name)
-        {
+    for (auto i: workModes[workMode].indicators) {
+        if (indicators[i].name == name) {
             return i;
         }
     }
@@ -31,10 +29,8 @@ std::optional<Indicator> Capabilities::findIndicator(WorkMode workMode, std::str
 }
 
 std::optional<Parameter> Capabilities::findParameter(WorkMode workMode, std::string_view name) {
-    for(auto i : workModes[workMode].parameters)
-    {
-        if(parameters[i].name == name)
-        {
+    for (auto i: workModes[workMode].parameters) {
+        if (parameters[i].name == name) {
             return i;
         }
     }
@@ -62,4 +58,13 @@ Indicator Capabilities::addIndicator(WorkMode workMode, std::string_view name, D
 DeviceType Capabilities::addDeviceType(std::string_view name) {
     deviceTypes.push_back(DeviceTypeData{name.data(), {}});
     return deviceTypes.size() - 1;
+}
+
+std::vector<DeviceType> Capabilities::enumerateDeviceTypes() {
+    std::vector <DeviceType> n;
+    n.reserve(deviceTypes.size());
+    for (int i = 0; i < deviceTypes.size(); ++i) {
+        n.push_back(i);
+    }
+    return n;
 }

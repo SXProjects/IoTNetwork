@@ -113,26 +113,18 @@ void LocationTree::addDevice(std::string_view location, Device newDevice) {
     }
 }
 
-void DeviceMap::setLocation(Device device, std::string_view location) {
-    locations.removeDevice(devices[device].path);
-    auto last = std::copy(devices[device].path.begin() + devices[device].path.rfind('/'),
-            devices[device].path.end(),
-            devices[device].path.begin());
-    devices[device].path.resize(last - devices[device].path.begin());
-    devices[device].path = location.data() + devices[device].path;
-    locations.addDevice(devices[device].path, device);
-}
-
-void DeviceMap::setName(Device device, std::string_view name) {
-    locations.removeDevice(devices[device].path);
-    devices[device].path.resize(devices[device].path.rfind('/'));
-    devices[device].path += name;
-    locations.addDevice(devices[device].path, device);
-}
-
 std::vector<Device> DeviceMap::find(std::string_view location, bool match) {
     std::vector<Device> result;
-    locations.find(location, result, match);
+    if(location == "*")
+    {
+        result.reserve(devices.size());
+        for (int i = 0; i < devices.size(); ++i) {
+            result.push_back(i);
+        }
+    } else
+    {
+        locations.find(location, result, match);
+    }
     return result;
 }
 
@@ -155,10 +147,18 @@ void DeviceMap::remove(Device device) {
     locations.removeDevice(devices[device].path);
 }
 
-std::string_view DeviceMap::getName(Device device) {
-    return std::string_view(devices[device].path).substr(devices[device].path.rfind('/') + 1);
+Device DeviceMap::removeDeviceType(DeviceType type) {
+    for (int i = 0; i < devices.size(); ++i) {
+        if (devices[i].deviceType == type) {
+            return i;
+        }
+    }
+    capabilities->removeDeviceType(type);
+    return -1;
 }
 
-std::string_view DeviceMap::getLocation(Device device) {
-    return std::string_view(devices[device].path).substr(0, devices[device].path.rfind('/'));
+void DeviceMap::setPath(Device device, std::string_view path) {
+    locations.removeDevice(devices[device].path);
+    devices[device].path = path;
+    locations.addDevice(devices[device].path, device);
 }
