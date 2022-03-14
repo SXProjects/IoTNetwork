@@ -1,6 +1,6 @@
-#include "ServerCommands.hpp"
+#include "Commands.hpp"
 
-Json ServerCommands::historyJson() {
+Json Commands::historyJson() {
     auto history = Json::array();
     for (auto &p: currentHistory) {
         p.second["time"] = timeAndDate(p.first);
@@ -76,7 +76,7 @@ std::string typeString(DataType type) {
 
 // Команды -----------------------------------------------------------------------------------------
 
-Json ServerCommands::transmitData(Json const &json) {
+Json Commands::transmitData(Json const &json) {
     auto id = json["device_id"].get<Device>();
     auto time = timePoint(json["time"].get<std::string>());
 
@@ -109,7 +109,7 @@ Json ServerCommands::transmitData(Json const &json) {
     return transmitJson;
 }
 
-Json ServerCommands::history(Json const &json) {
+Json Commands::history(Json const &json) {
     auto id = json["device_id"].get<Device>();
     time_point startDate = timePoint(json["start_date"].get<std::string>());
 
@@ -155,7 +155,7 @@ Json ServerCommands::history(Json const &json) {
     return result;
 }
 
-Json ServerCommands::addDeviceType(Json const &json) {
+Json Commands::addDeviceType(Json const &json) {
     auto typeName = json["name"].get<std::string>();
     auto type = capabilities->addDeviceType(typeName);
 
@@ -187,7 +187,7 @@ Json ServerCommands::addDeviceType(Json const &json) {
     return {};
 }
 
-Json ServerCommands::removeDeviceType(Json const &json) {
+Json Commands::removeDeviceType(Json const &json) {
     Json res;
     auto typeStr = json["device_type"].get<std::string>();
     auto deviceType = capabilities->findDeviceType(typeStr);
@@ -203,7 +203,7 @@ Json ServerCommands::removeDeviceType(Json const &json) {
     return res;
 }
 
-Json ServerCommands::deviceTypeInfo(const Json &) {
+Json Commands::deviceTypeInfo(const Json &) {
     Json res;
     for (DeviceType type: capabilities->enumerateDeviceTypes()) {
         Json deviceType;
@@ -238,7 +238,7 @@ Json ServerCommands::deviceTypeInfo(const Json &) {
     return res;
 }
 
-Json ServerCommands::addDevice(Json const &json) {
+Json Commands::addDevice(Json const &json) {
     auto location = json["location"].get<std::string>();
 
     auto typeStr = json["device_type"].get<std::string>();
@@ -261,7 +261,7 @@ Json ServerCommands::addDevice(Json const &json) {
     return res;
 }
 
-Json ServerCommands::deviceInfo(const Json &) {
+Json Commands::deviceInfo(const Json &) {
     Json res;
     for (Device d: map->find("*")) {
         Json device;
@@ -274,7 +274,7 @@ Json ServerCommands::deviceInfo(const Json &) {
     return res;
 }
 
-Json ServerCommands::findDevice(Json const &json) {
+Json Commands::findDevice(Json const &json) {
     auto match = json["match"].get<bool>();
     auto location = json["location"].get<std::string>();
     auto devices = map->find(location, match);
@@ -284,27 +284,27 @@ Json ServerCommands::findDevice(Json const &json) {
     return res;
 }
 
-Json ServerCommands::removeDevice(Json const &json) {
+Json Commands::removeDevice(Json const &json) {
     auto id = json["device_id"].get<Device>();
     map->remove(id);
     return {};
 }
 
-Json ServerCommands::setWorkMode(Json const &json) {
+Json Commands::setWorkMode(Json const &json) {
     auto id = json["device_id"].get<Device>();
     auto wm = capabilities->findWorkMode(map->deviceType(id), json["work_mode"].get<std::string>());
     map->setWorkMode(id, *wm);
     return {};
 }
 
-Json ServerCommands::setLocation(Json const &json) {
+Json Commands::setLocation(Json const &json) {
     auto id = json["device_id"].get<Device>();
     auto location = json["location"].get<std::string>();
     map->setPath(id, location);
     return {};
 }
 
-Json ServerCommands::link(Json const &json, bool unlink) {
+Json Commands::link(Json const &json, bool unlink) {
     auto transmitter = json["transmitter"].get<Device>();
     Indicator indicator = findIndicator(transmitter, json["indicator"]);
     auto receiver = json["receiver"].get<Device>();
@@ -319,7 +319,7 @@ Json ServerCommands::link(Json const &json, bool unlink) {
     return {};
 }
 
-Json ServerCommands::callback(Json const &json) {
+Json Commands::callback(Json const &json) {
     if (!json.contains("command_name")) {
         return errorJson(
                 "undefined command", "request",
@@ -372,7 +372,7 @@ Json ServerCommands::callback(Json const &json) {
     return result;
 }
 
-Json ServerCommands::errorJson(std::string const &from, std::string const &stage,
+Json Commands::errorJson(std::string const &from, std::string const &stage,
         const std::string &msg) {
     Json j;
     if (from.empty()) {
@@ -383,7 +383,7 @@ Json ServerCommands::errorJson(std::string const &from, std::string const &stage
     return j;
 }
 
-Indicator ServerCommands::findIndicator(Device id, std::string const &name) {
+Indicator Commands::findIndicator(Device id, std::string const &name) {
     auto indicator = capabilities->findIndicator(map->getWorkMode(id), name);
     if (!indicator.has_value()) {
         throw std::runtime_error("indicator '" + name + "' is not exist");
@@ -391,7 +391,7 @@ Indicator ServerCommands::findIndicator(Device id, std::string const &name) {
     return *indicator;
 }
 
-Parameter ServerCommands::findParameter(Device id, std::string const &name) {
+Parameter Commands::findParameter(Device id, std::string const &name) {
     auto indicator = capabilities->findParameter(map->getWorkMode(id), name);
     if (!indicator.has_value()) {
         throw std::runtime_error("parameter '" + name + "' is not exist");

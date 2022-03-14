@@ -1,7 +1,7 @@
-#include "DeviceRelations.hpp"
+#include "Relations.hpp"
 #include <numeric>
 
-void DeviceRelations::link(Device transmitter, Indicator indicator,
+void Relations::link(Device transmitter, Indicator indicator,
         Device receiver, Parameter parameter) {
 
     impl::TransmitData transmitData = {transmitter, indicator, map->getWorkMode(transmitter)};
@@ -44,7 +44,7 @@ void DeviceRelations::link(Device transmitter, Indicator indicator,
     }
 }
 
-void DeviceRelations::unlink(Device transmitter, Indicator indicator,
+void Relations::unlink(Device transmitter, Indicator indicator,
         Device receiver, Parameter parameter) {
     impl::TransmitData transmitData = {transmitter, indicator, map->getWorkMode(transmitter)};
     impl::ReceiveData receiveData = {receiver, parameter, map->getWorkMode(receiver)};
@@ -69,6 +69,6 @@ void DeviceRelations::unlink(Device transmitter, Indicator indicator,
 }
 
 
-void DeviceRelations::awake(Device device, Parameter parameter) {
+void Relations::awake(Device device, Parameter parameter) {
     map->setLastAwakeTime(device, parameter, hclock::now());
 }

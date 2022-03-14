@@ -15,12 +15,20 @@ find_package(nlohmann_json CONFIG REQUIRED)
 
 add_library(SmartNetwork
         src/SmartNetwork/Capabilities.cpp
-        src/SmartNetwork/ServerCommands.cpp
+        src/SmartNetwork/Commands.cpp
         src/SmartNetwork/DeviceMap.cpp
-        src/SmartNetwork/WebsocketServer.cpp
-        src/SmartNetwork/DeviceRelations.cpp)
+        src/SmartNetwork/Relations.cpp)
 target_include_directories(SmartNetwork PUBLIC src)
 target_link_libraries(SmartNetwork PUBLIC websocketpp::websocketpp nlohmann_json::nlohmann_json)
 
-add_executable(SmartNetworkRun app/main.cpp)
+add_executable(SmartNetworkRun app/run.cpp)
 target_link_libraries(SmartNetworkRun PUBLIC SmartNetwork)
+if (MSVC)
+    target_compile_options(SmartNetworkRun PRIVATE /bigobj)
+endif ()
+
+add_executable(SmartNetworkTest app/test.cpp)
+target_link_libraries(SmartNetworkTest PUBLIC SmartNetwork)
+if (MSVC)
+    target_compile_options(SmartNetworkTest PRIVATE /bigobj)
+endif ()

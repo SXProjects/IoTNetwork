@@ -3,23 +3,24 @@
 #include <iostream>
 #include "DeviceMap.hpp"
 #include <nlohmann/json.hpp>
-#include "WebsocketServer.hpp"
-#include "DeviceRelations.hpp"
+#include "Relations.hpp"
+
+using Json = nlohmann::json;
 
 std::string timeAndDate(hclock::time_point now);
 
 hclock::time_point timePoint(std::string const &date);
 
-class ServerCommands {
+class Commands {
 public:
-    ServerCommands(WebsocketServer *server, DeviceMap *map, Capabilities *capabilities,
-            DeviceRelations *relations) : map(map), capabilities(capabilities),
-            initTime(hclock::now()), server(server), relations(relations) {
+    Commands(DeviceMap *map, Capabilities *capabilities,
+            Relations *relations) : map(map), capabilities(capabilities),
+            initTime(hclock::now()), relations(relations) {
     }
 
     Json callback(Json const &json);
 
-    // вызывает DeviceRelations
+    // вызывает Relations
 
     template<typename T>
     void transmit(Device receiver, Parameter parameter, Timestamp<T> val) {
@@ -82,10 +83,9 @@ private:
 
     Parameter findParameter(Device id, std::string const& name);
 
-    WebsocketServer *server;
     DeviceMap *map;
     Capabilities *capabilities;
-    DeviceRelations *relations;
+    Relations *relations;
     time_point initTime;
     std::map<time_point, Json> currentHistory;
     Json transmitJson;

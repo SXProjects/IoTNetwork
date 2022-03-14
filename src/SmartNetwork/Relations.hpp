@@ -140,9 +140,9 @@ struct std::hash<impl::ReceiveData> {
     }
 };
 
-class DeviceRelations {
+class Relations {
 public:
-    explicit DeviceRelations(DeviceMap *map, Capabilities *capabilities) :
+    explicit Relations(DeviceMap *map, Capabilities *capabilities) :
             map(map), capabilities(capabilities) {}
 
     void link(Device transmitter, Indicator indicator, Device receiver, Parameter parameter);
