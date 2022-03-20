@@ -30,18 +30,7 @@ int main() {
         Json j;
         i >> j;
 
-        if (j.contains("server") && j.contains("client")) {
-            std::cout << "YOU CAN'T RUN BOTH THE CLIENT AND THE SERVER AT THE SAME TIME"
-                    << std::endl;
-            return 0;
-        }
-
-        if (!(j.contains("server") || j.contains("client"))) {
-            std::cout << "YOU MUST SPECIFY THE SERVER OR CLIENT MODE" << std::endl;
-            return 0;
-        }
-
-        if (j.contains("client")) {
+        if (j["mode"] == "client") {
             std::cout << "RUNNING TEST SERVER" << std::endl;
             std::string uri = j["client"].get<std::string>();
             std::string sPort = uri.substr(uri.rfind(':') + 1);
@@ -51,7 +40,7 @@ int main() {
             return 0;
         }
 
-        if (j.contains("server")) {
+        if (j["mode"] == "server") {
             std::cout << "RUNNING TEST CLIENT" << std::endl;
             auto addr = "ws://127.0.0.1:" + std::to_string(j["server"].get<int>());
             std::cout << "Connecting to " << addr << std::endl;

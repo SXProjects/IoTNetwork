@@ -1,4 +1,5 @@
 {
   "client": "ws://127.0.0.1:9002",
-  "run_test": true
+  "server": 9002,
+  "mode": "client"
 }

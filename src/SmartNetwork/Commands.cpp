@@ -357,6 +357,8 @@ Json Commands::callback(Json const &json) {
             result = link(json, false);
         } else if (command == "unlink") {
             result = link(json, true);
+        } else if (command == "list_locations") {
+            result = listLocations(json);
         }
     } catch (std::exception const &e) {
         result = errorJson("", command, e.what());
@@ -397,4 +399,16 @@ Parameter Commands::findParameter(Device id, std::string const &name) {
         throw std::runtime_error("parameter '" + name + "' is not exist");
     }
     return *indicator;
+}
+
+Json Commands::listLocations(const Json &json) {
+    auto match = json["match"].get<bool>();
+    auto location = json["location"].get<std::string>();
+    auto rooms = map->listLocations(location, match);
+
+    Json res;
+    res["sublocations"] = rooms;
+
+    return res;
+
 }

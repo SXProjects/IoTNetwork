@@ -27,6 +27,9 @@ public:
         findImpl(location, res, "/", match);
     }
 
+    void listLocations(std::string_view location, std::vector<std::string_view> &res,
+            bool match = true);
+
 private:
     void addSubLocation(std::string_view location, Device newDevice);
 
@@ -49,6 +52,8 @@ public:
     Device removeDeviceType(DeviceType type);
 
     void remove(Device device);
+
+    std::vector<std::string_view> listLocations(std::string_view location, bool match);
 
     std::string_view getPath(Device device) {
         return devices[device].path;
@@ -97,5 +102,7 @@ private:
     LocationTree locations;
     std::vector<DeviceData> devices;
     Capabilities *capabilities;
+
+    void listLocations(std::string_view location, std::vector<std::string_view> &res, bool match);
 };
 

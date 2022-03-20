@@ -65,6 +65,8 @@ public:
 
     Json findDevice(Json const &json);
 
+    Json listLocations(Json const &json);
+
     Json removeDevice(Json const &json);
 
     Json setWorkMode(Json const &json);

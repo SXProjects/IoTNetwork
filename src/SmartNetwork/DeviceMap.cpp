@@ -113,16 +113,50 @@ void LocationTree::addDevice(std::string_view location, Device newDevice) {
     }
 }
 
+void LocationTree::listLocations(std::string_view location, std::vector<std::string_view> &res,
+        bool match) {
+    if (location == "") {
+        for (auto const &s: sub) {
+            if (!s.sub.empty()) {
+                res.push_back(s.base);
+            }
+        }
+        return;
+    }
+
+    auto const pos = location.find('/');
+    if (pos == std::string::npos) {
+        for (auto const &it: sub) {
+            if (it.base == location) {
+                for (auto const &s: it.sub) {
+                    if (!s.sub.empty()) {
+                        res.push_back(s.base);
+                    }
+                }
+                return;
+            }
+        }
+    } else {
+        std::string_view root = location.substr(0, pos);
+        std::string_view path = location.substr(pos + 1);
+
+        // Ищем конкретное местоположение
+        for (auto &s: sub) {
+            if (s.base == root) {
+                return s.listLocations(path, res, match);
+            }
+        }
+    }
+}
+
 std::vector<Device> DeviceMap::find(std::string_view location, bool match) {
     std::vector<Device> result;
-    if(location == "*")
-    {
+    if (location == "*") {
         result.reserve(devices.size());
         for (int i = 0; i < devices.size(); ++i) {
             result.push_back(i);
         }
-    } else
-    {
+    } else {
         locations.find(location, result, match);
     }
     return result;
@@ -161,4 +195,10 @@ void DeviceMap::setPath(Device device, std::string_view path) {
     locations.removeDevice(devices[device].path);
     devices[device].path = path;
     locations.addDevice(devices[device].path, device);
+}
+
+std::vector<std::string_view> DeviceMap::listLocations(std::string_view location, bool match) {
+    std::vector<std::string_view> result;
+    locations.listLocations(location, result, match);
+    return result;
 }

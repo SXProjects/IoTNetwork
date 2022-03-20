@@ -21,24 +21,13 @@ int main() {
         Json j;
         i >> j;
 
-        if (j.contains("server") && j.contains("client")) {
-            std::cout << "YOU CAN'T RUN BOTH THE CLIENT AND THE SERVER AT THE SAME TIME"
-                    << std::endl;
-            return 0;
-        }
-
-        if (!(j.contains("server") || j.contains("client"))) {
-            std::cout << "YOU MUST SPECIFY THE SERVER OR CLIENT MODE" << std::endl;
-            return 0;
-        }
-
-        if (j.contains("server")) {
+        if (j["mode"] == "server") {
             std::cout << "RUNNING SERVER" << std::endl;
             runServer([] { return Json(); }, callback, j["server"].get<int>());
             return 0;
         }
 
-        if (j.contains("client")) {
+        if (j["mode"] == "client") {
             std::cout << "RUNNING CLIENT" << std::endl;
             runClient([] { return Json(); }, callback, j["client"].get<std::string>());
             return 0;

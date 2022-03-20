@@ -106,5 +106,15 @@
     "indicator": [
       "temperature"
     ]
+  },
+  {
+    "command_name": "find_device",
+    "match": false,
+    "location": "home/*"
+  },
+  {
+    "command_name": "list_locations",
+    "match": false,
+    "location": ""
   }
 ]
