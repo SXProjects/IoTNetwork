@@ -12,6 +12,7 @@ ExternalProject_Add(vcpkg
 
 find_package(websocketpp CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
+find_package(cereal CONFIG REQUIRED)
 
 add_library(SmartNetwork
         src/SmartNetwork/Capabilities.cpp
@@ -19,7 +20,8 @@ add_library(SmartNetwork
         src/SmartNetwork/DeviceMap.cpp
         src/SmartNetwork/Relations.cpp)
 target_include_directories(SmartNetwork PUBLIC src)
-target_link_libraries(SmartNetwork PUBLIC websocketpp::websocketpp nlohmann_json::nlohmann_json)
+target_link_libraries(SmartNetwork PUBLIC websocketpp::websocketpp
+        nlohmann_json::nlohmann_json cereal::cereal)
 
 add_executable(SmartNetworkRun app/run.cpp)
 target_link_libraries(SmartNetworkRun PUBLIC SmartNetwork)

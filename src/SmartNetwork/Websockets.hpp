@@ -32,6 +32,7 @@ void messageHandler(S &&send, F &&callback, websocketpp::connection_hdl hdl, M m
                 result.push_back(e);
             }
         } else {
+
             result.push_back(r);
         }
     };
@@ -40,6 +41,13 @@ void messageHandler(S &&send, F &&callback, websocketpp::connection_hdl hdl, M m
         json = Json::parse(msg->get_payload());
     } catch (std::exception &e) {
         return send(sendError("parse error", e.what()));
+    }
+
+    if (json.contains("command_name")) {
+        if (json["command_name"] == "stop")
+        {
+            throw std::runtime_error("saving and stopping...");
+        }
     }
 
     try {

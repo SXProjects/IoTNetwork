@@ -8,7 +8,7 @@ void Relations::link(Device transmitter, Indicator indicator,
     impl::ReceiveData receiveData = {receiver, parameter, map->getWorkMode(receiver)};
 
     auto tit = storage.find(transmitData);
-    impl::Storage *pS;
+    std::shared_ptr<impl::Storage> pS;
     if (tit == storage.end()) {
         auto type = capabilities->indicatorType(indicator);
         impl::Storage s;
@@ -25,7 +25,7 @@ void Relations::link(Device transmitter, Indicator indicator,
         }
 
         tit = storage.insert({transmitData, {receiveData}}).first;
-        tit->first.data = std::move(s);
+        tit->first.data = std::make_shared<impl::Storage>(std::move(s));
     } else {
         if (std::find(tit->second.begin(), tit->second.end(), receiveData) == tit->second.end()) {
             tit->second.push_back(receiveData);
@@ -34,7 +34,7 @@ void Relations::link(Device transmitter, Indicator indicator,
         }
     }
 
-    pS = &tit->first.data;
+    pS = tit->first.data;
 
     auto rit = receiveDependencies.find(receiveData);
     if (rit == receiveDependencies.end()) {
@@ -57,7 +57,7 @@ void Relations::unlink(Device transmitter, Indicator indicator,
                 tit->second.erase(tit->second.begin() + i);
 
                 rit->second.erase(
-                        std::find(rit->second.begin(), rit->second.end(), &tit->first.data));
+                        std::find(rit->second.begin(), rit->second.end(), tit->first.data));
 
                 if (tit->second.empty()) {
                     storage.erase(tit);

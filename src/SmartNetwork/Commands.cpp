@@ -359,6 +359,8 @@ Json Commands::callback(Json const &json) {
             result = link(json, true);
         } else if (command == "list_locations") {
             result = listLocations(json);
+        } else if (command == "stop") {
+            result = Json();
         }
     } catch (std::exception const &e) {
         result = errorJson("", command, e.what());
@@ -366,7 +368,7 @@ Json Commands::callback(Json const &json) {
 
     if (result.is_array()) {
         for (auto &r: result) {
-            r["command-name"] = command;
+            r["command_name"] = command;
         }
     } else {
         result["command_name"] = command;

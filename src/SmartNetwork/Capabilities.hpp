@@ -88,27 +88,57 @@ public:
         return parameters[parameter].name;
     }
 
+    template<class Archive>
+    void save(Archive &ar) const {
+        ar(deviceTypes, workModes, parameters, indicators);
+    }
+
+    template<class Archive>
+    void load(Archive &ar) {
+        ar(deviceTypes, workModes, parameters, indicators);
+    }
+
 private:
     struct DeviceTypeData {
         std::string name;
         std::vector<WorkMode> workModes;
         bool active = false;
+
+        template<class Archive>
+        void serialize(Archive &ar) {
+            ar(name, workModes, active);
+        }
     };
 
     struct WorkModeData {
         std::string name;
         std::vector<Parameter> parameters;
         std::vector<Indicator> indicators;
+
+        template<class Archive>
+        void serialize(Archive &ar) {
+            ar(name, parameters, indicators);
+        }
     };
 
     struct ParameterData {
         std::string name;
         DataType type;
+
+        template<class Archive>
+        void serialize(Archive &ar) {
+            ar(name, type);
+        }
     };
 
     struct IndicatorData {
         std::string name;
         DataType type;
+
+        template<class Archive>
+        void serialize(Archive &ar) {
+            ar(name, type);
+        }
     };
 
     std::vector<DeviceTypeData> deviceTypes;

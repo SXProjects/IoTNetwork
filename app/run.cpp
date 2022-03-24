@@ -2,13 +2,26 @@
 #include <SmartNetwork/Commands.hpp>
 #include <SmartNetwork/Relations.hpp>
 #include <fstream>
+#include <cereal/archives/binary.hpp>
+#include <sstream>
+#include <cereal/types/string.hpp>
+#include <filesystem>
 
 int main() {
-    try {
-        Capabilities capabilities;
-        DeviceMap map(&capabilities);
+    Capabilities capabilities;
+    DeviceMap map(&capabilities);
+    Relations relations(&map, &capabilities);
 
-        Relations relations(&map, &capabilities);
+    try {
+        if (std::filesystem::exists("data.cereal")) {
+            std::ifstream is("data.cereal", std::ios::binary);
+            cereal::BinaryInputArchive iarchive(is);
+            iarchive(capabilities, map, relations);
+            std::cout << "Loading data..." << std::endl;
+        } else {
+            std::cout << "Empty start..." << std::endl;
+        }
+
         Commands commands(&map, &capabilities, &relations);
         auto callback = [&commands](auto &j) { return commands.callback(j); };
 
@@ -36,4 +49,9 @@ int main() {
     catch (std::exception const &e) {
         std::cout << "UNDEFINED ERROR: " << e.what() << std::endl;
     }
+
+    std::ofstream os("data.cereal", std::ios::binary);
+        cereal::BinaryOutputArchive oarchive(os);
+        oarchive(capabilities, map, relations);
+        std::cout << "Saving data..." << std::endl;
 }

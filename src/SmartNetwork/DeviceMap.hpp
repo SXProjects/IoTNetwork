@@ -8,6 +8,13 @@
 #include <iostream>
 #include <utility>
 #include <chrono>
+#include <cereal/archives/binary.hpp>
+#include <cereal/types/vector.hpp>
+#include <cereal/types/string.hpp>
+#include <cereal/types/chrono.hpp>
+#include <cereal/types/variant.hpp>
+#include <cereal/types/unordered_map.hpp>
+#include <cereal/types/memory.hpp>
 
 using Device = unsigned;
 using hclock = std::chrono::system_clock;
@@ -17,6 +24,8 @@ using seconds = std::chrono::seconds;
 
 class LocationTree {
 public:
+    LocationTree() = default;
+
     explicit LocationTree(std::string_view base) : base(base) {}
 
     void addDevice(std::string_view location, Device newDevice);
@@ -30,13 +39,18 @@ public:
     void listLocations(std::string_view location, std::vector<std::string_view> &res,
             bool match = true);
 
+    template<class Archive>
+    void serialize(Archive &ar) {
+        ar(base, device, sub);
+    }
+
 private:
     void addSubLocation(std::string_view location, Device newDevice);
 
     void findImpl(std::string_view location, std::vector<Device> &res, std::string_view root,
             bool match);
 
-    std::string_view base;
+    std::string base;
     Device device = -1;
     std::vector<LocationTree> sub;
 };
@@ -89,6 +103,16 @@ public:
         return devices[receiver].instantly;
     }
 
+    template<class Archive>
+    void save(Archive &ar) const {
+        ar(locations, devices);
+    }
+
+    template<class Archive>
+    void load(Archive &ar) {
+        ar(locations, devices);
+    }
+
 private:
     struct DeviceData {
         bool instantly;
@@ -97,6 +121,11 @@ private:
         WorkMode workMode;
         std::vector<time_point> lastAwake;
         bool active;
+
+        template<class Archive>
+        void serialize(Archive &ar) {
+            ar(instantly, path, deviceType, workMode, lastAwake, active);
+        }
     };
 
     LocationTree locations;

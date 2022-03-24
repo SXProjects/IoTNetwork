@@ -8,6 +8,11 @@ template<typename T>
 struct Timestamp {
     T val;
     time_point time;
+
+    template<class Archive>
+    void serialize(Archive &ar) {
+        ar(val, time);
+    }
 };
 
 enum class ApproxMode {
@@ -28,7 +33,12 @@ namespace impl {
         Device transmitter;
         Indicator indicator;
         WorkMode workMode;
-        mutable impl::Storage data;
+        mutable std::shared_ptr<impl::Storage> data;
+
+        template<class Archive>
+        void serialize(Archive &ar) {
+            ar(transmitter, indicator, workMode, data);
+        }
 
         friend bool operator==(const TransmitData &lhs, const TransmitData &rhs) {
             return lhs.transmitter == rhs.transmitter &&
@@ -42,6 +52,11 @@ namespace impl {
         Parameter parameter;
         WorkMode workMode;
 
+        template<class Archive>
+        void serialize(Archive &ar) {
+            ar(receiver, parameter, workMode);
+        }
+
         friend bool operator==(const ReceiveData &lhs, const ReceiveData &rhs) {
             return lhs.receiver == rhs.receiver &&
                     lhs.parameter == rhs.parameter &&
@@ -54,8 +69,7 @@ namespace impl {
     template<typename T, typename R>
     void history(T &result, R const &data, time_point from, time_point to,
             seconds discreteInterval, ApproxMode approxMode) {
-        if(to <= from)
-        {
+        if (to <= from) {
             throw std::runtime_error("'to' time must be greater than 'from' time");
         }
 
@@ -145,6 +159,16 @@ public:
     explicit Relations(DeviceMap *map, Capabilities *capabilities) :
             map(map), capabilities(capabilities) {}
 
+    template<class Archive>
+    void save(Archive &ar) const {
+        ar(storage, receiveDependencies);
+    }
+
+    template<class Archive>
+    void load(Archive &ar) {
+        ar(storage, receiveDependencies);
+    }
+
     void link(Device transmitter, Indicator indicator, Device receiver, Parameter parameter);
 
     void unlink(Device transmitter, Indicator indicator, Device receiver, Parameter parameter);
@@ -193,7 +217,7 @@ public:
             T result{};
             impl::history(result, data, from, to, discreteInterval, approxMode);
             prepareHistory(capabilities->indicatorName(indicator).data(), result);
-        }, it->first.data);
+        }, *it->first.data);
     }
 
     template<typename F>
@@ -214,7 +238,7 @@ public:
 
         if (it != storage.end()) {
             Timestamp<T> timestamp{data, time};
-            std::get<impl::TypeStorage<T>>(it->first.data).push_back(timestamp);
+            std::get<impl::TypeStorage<T>>(*it->first.data).push_back(timestamp);
 
             // идём через все устройства, получающие команды немедленно
             for (auto r: it->second) {
@@ -230,5 +254,5 @@ private:
     DeviceMap *map;
     Capabilities *capabilities;
     std::unordered_map<impl::TransmitData, std::vector<impl::ReceiveData>> storage;
-    std::unordered_map<impl::ReceiveData, std::vector<impl::Storage *>> receiveDependencies;
+    std::unordered_map<impl::ReceiveData, std::vector<std::shared_ptr<impl::Storage>>> receiveDependencies;
 };
