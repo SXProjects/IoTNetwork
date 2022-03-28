@@ -116,5 +116,8 @@
     "command_name": "list_locations",
     "match": false,
     "location": ""
+  },
+  {
+    "command_name": "stop"
   }
 ]
