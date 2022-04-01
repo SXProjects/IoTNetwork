@@ -9,6 +9,7 @@ ExternalProject_Add(vcpkg
         GIT_REPOSITORY https://github.com/microsoft/vcpkg.git
         SOURCE_DIR=${CMAKE_BINARY_DIR}
         )
+add_compile_options(-DASIO_STANDALONE -pthread)
 
 find_package(websocketpp CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
