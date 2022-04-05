@@ -59,6 +59,8 @@ public:
 
     Json deviceTypeInfo(Json const &json);
 
+    Json deviceConfigInfo(Json const &json);
+
     Json addDevice(Json const &json);
 
     Json deviceInfo(Json const &json);
