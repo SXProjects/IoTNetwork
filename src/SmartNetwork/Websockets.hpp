@@ -50,6 +50,7 @@ void messageHandler(S &&send, F &&callback, websocketpp::connection_hdl hdl, M m
     }
 
     try {
+	std::cout << "Accepted: " + json.dump() << std::endl;
         if (json.is_array()) {
             for (auto &j: json) {
                 if (json.contains("command_name")) {
@@ -110,6 +111,7 @@ void setup(S &s, C &&cntCall, F &&msgCall, websocketpp::connection_hdl &connecti
     s.set_message_handler(
             [&](auto &&hdl, auto &&msg) {
                 messageHandler([&](Json const &json) {
+		    std::cout << "Sending :" + json.dump() << std::endl;
                     if (json.empty()) {
                         return;
                     }

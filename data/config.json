@@ -1,5 +1,5 @@
 {
-  "client": "ws://127.0.0.1:9002",
-  "server": 9002,
+  "client": "ws://localhost:8080",
+  "server": 8080,
   "mode": "client"
 }

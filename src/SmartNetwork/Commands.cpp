@@ -241,12 +241,12 @@ Json Commands::deviceTypeInfo(const Json &) {
 Json Commands::deviceConfigInfo(const Json &json) {
     Json res;
 
-    if (!json.contains("devices")) {
-        return errorJson("deviceConfigInfo", "add_device_type",
-                "'work_modes' is required json parameter");
+    if (!json.contains("device_id")) {
+        return errorJson("deviceConfigInfo", "device_config_info",
+                "'device_id' is required json parameter");
     }
 
-    for(Device device : json["devices"])
+    for(Device device : json["device_id"])
     {
         Json info;
         info["device_id"] = device;
@@ -368,7 +368,7 @@ Json Commands::callback(Json const &json) {
     if (!json.contains("command_name")) {
         return errorJson(
                 "undefined command", "request",
-                "all commands must specify 'command_name'");
+                "all commands must specify 'command_name'" + json.dump());
     }
 
     auto command = json["command_name"].get<std::string>();
