@@ -1,3 +1,5 @@
+#define _WEBSOCKETPP_CPP11_THREAD_
+
 #include <fstream>
 #include <SmartNetwork/Websockets.hpp>
 

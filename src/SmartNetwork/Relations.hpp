@@ -66,35 +66,6 @@ namespace impl {
 
     auto const timeCmp = [](auto &&lhs, auto &&rhs) { return lhs.time < rhs.time; };
 
-    template<typename T, typename R>
-    void history(T &result, R const &data, time_point from, time_point to,
-            seconds discreteInterval, ApproxMode approxMode) {
-        if (to <= from) {
-            throw std::runtime_error("'to' time must be greater than 'from' time");
-        }
-
-        // находим пограничные значения в заданном промежутке времени
-        auto begin = std::lower_bound(data.begin(), data.end(),
-                Timestamp<T>{T{}, from}, impl::timeCmp);
-        auto end = std::upper_bound(data.begin(), data.end(),
-                Timestamp<T>{T{}, to}, impl::timeCmp);
-
-        // разбиваем промежуток времени на диапазоны, вычисляя приблизительное значение
-        // на каждом из них, чтобы не передавать огромное количество данных просто так
-        if (discreteInterval != seconds(0)) {
-            auto lastBegin = begin;
-            for (seconds t(0); (t <= from - to) && begin != end; ++begin) {
-                if (begin->time - from > t + discreteInterval) {
-                    t += discreteInterval;
-                    result.push_back({impl::approximate(lastBegin, begin, approxMode), from + t});
-                    lastBegin = begin;
-                }
-            }
-        } else {
-            std::copy(begin, end, std::back_inserter(result));
-        }
-    }
-
     template<typename T>
     auto approximate(T begin, T end, ApproxMode approxMode) {
         switch (approxMode) {
@@ -132,6 +103,37 @@ namespace impl {
                 return decltype(begin->val){};
         }
     }
+
+    template<typename T, typename R>
+    void history(T &result, R const &data, time_point from, time_point to,
+            seconds discreteInterval, ApproxMode approxMode) {
+        if (to <= from) {
+            throw std::runtime_error("'to' time must be greater than 'from' time");
+        }
+
+        // находим пограничные значения в заданном промежутке времени
+        auto begin = std::lower_bound(data.begin(), data.end(),
+                Timestamp<T>{T{}, from}, impl::timeCmp);
+        auto end = std::upper_bound(data.begin(), data.end(),
+                Timestamp<T>{T{}, to}, impl::timeCmp);
+
+        // разбиваем промежуток времени на диапазоны, вычисляя приблизительное значение
+        // на каждом из них, чтобы не передавать огромное количество данных просто так
+        if (discreteInterval != seconds(0)) {
+            auto lastBegin = begin;
+            for (seconds t(0); (t <= from - to) && begin != end; ++begin) {
+                if (begin->time - from > t + discreteInterval) {
+                    t += discreteInterval;
+                    result.push_back({impl::approximate(lastBegin, begin, approxMode), from + t});
+                    lastBegin = begin;
+                }
+            }
+        } else {
+            std::copy(begin, end, std::back_inserter(result));
+        }
+    }
+
+
 }
 
 template<>

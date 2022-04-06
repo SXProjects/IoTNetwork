@@ -27,6 +27,12 @@ void messageHandler(S &&send, F &&callback, websocketpp::connection_hdl hdl, M m
             return;
         }
 
+        if (r.contains("command_name")) {
+            if (r["command_name"] == "stop") {
+                throw std::runtime_error("stop");
+            }
+        }
+
         if (r.is_array()) {
             for (auto const &e: r) {
                 result.push_back(e);
@@ -41,13 +47,6 @@ void messageHandler(S &&send, F &&callback, websocketpp::connection_hdl hdl, M m
         json = Json::parse(msg->get_payload());
     } catch (std::exception &e) {
         return send(sendError("parse error", e.what()));
-    }
-
-    if (json.contains("command_name")) {
-        if (json["command_name"] == "stop")
-        {
-            throw std::runtime_error("saving and stopping...");
-        }
     }
 
     try {
@@ -65,7 +64,11 @@ void messageHandler(S &&send, F &&callback, websocketpp::connection_hdl hdl, M m
             formResponse(callback(json));
         }
     } catch (std::exception &e) {
-        result.push_back(sendError("undefined request error", e.what()));
+        if (e.what() == std::string("stop")) {
+            throw std::runtime_error("saving and stopping... ");
+        } else {
+            result.push_back(sendError("undefined request error", e.what()));
+        }
     }
 
     if (!result.empty()) {

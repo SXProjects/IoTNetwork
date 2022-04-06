@@ -238,6 +238,51 @@ Json Commands::deviceTypeInfo(const Json &) {
     return res;
 }
 
+Json Commands::deviceConfigInfo(const Json &json) {
+    Json res;
+
+    if (!json.contains("devices")) {
+        return errorJson("deviceConfigInfo", "add_device_type",
+                "'work_modes' is required json parameter");
+    }
+
+    for(Device device : json["devices"])
+    {
+        Json info;
+        info["device_id"] = device;
+        info["name"] = capabilities->deviceTypeName(map->deviceType(device)).data();
+        info["current_work_mode"] = capabilities->workModeName(map->getWorkMode(device));
+
+        auto workModes = capabilities->enumerateWorkModes(map->deviceType(device));
+        for (WorkMode wm: workModes) {
+            Json workMode;
+            workMode["name"] = capabilities->workModeName(wm).data();
+
+            for (Indicator i: capabilities->enumerateIndicators(wm)) {
+                Json indicator;
+                indicator["name"] = capabilities->indicatorName(i).data();
+                indicator["type"] = typeString(capabilities->indicatorType(i));
+                workMode["indicators"].push_back(indicator);
+            }
+
+            for (Indicator i: capabilities->enumerateParameters(wm)) {
+                Json parameter;
+                parameter["name"] = capabilities->parameterName(i).data();
+                std::cout << capabilities->parameterName(i).data() << std::endl;
+                parameter["type"] = typeString(capabilities->parameterType(i));
+                workMode["parameters"].push_back(parameter);
+            }
+
+            info["work_modes"].push_back(workMode);
+        }
+
+        res["devices"].push_back(info);
+    }
+
+    return res;
+
+}
+
 Json Commands::addDevice(Json const &json) {
     auto location = json["location"].get<std::string>();
 
@@ -359,6 +404,8 @@ Json Commands::callback(Json const &json) {
             result = link(json, true);
         } else if (command == "list_locations") {
             result = listLocations(json);
+        } else if (command == "device_config_info") {
+            result = deviceConfigInfo(json);
         } else if (command == "stop") {
             result = Json();
         } else
@@ -418,3 +465,5 @@ Json Commands::listLocations(const Json &json) {
     return res;
 
 }
+
+
