@@ -53,6 +53,12 @@ void messageHandler(S &&send, F &&callback, websocketpp::connection_hdl hdl, M m
     try {
         if (json.is_array()) {
             for (auto &j: json) {
+                if (json.contains("command_name")) {
+                    if (json["command_name"] == "stop")
+                    {
+                        throw std::runtime_error("saving and stopping...");
+                    }
+                }
                 formResponse(callback(j));
             }
         } else {
@@ -67,12 +73,27 @@ void messageHandler(S &&send, F &&callback, websocketpp::connection_hdl hdl, M m
     }
 }
 
-template<typename S, typename F, typename C>
-void setup(S &s, C &&cntCall, F &&msgCall, websocketpp::connection_hdl &connection) {
+std::function<void()> timerf;
+
+boost::asio::io_service io_service;
+boost::posix_time::seconds interval(5 * 60);
+boost::asio::deadline_timer asioTimer(io_service, interval);
+
+void tick(const boost::system::error_code&)
+{
+    timerf();
+    asioTimer.expires_at(asioTimer.expires_at() + interval);
+    asioTimer.async_wait(tick);
+}
+
+template<typename S, typename F, typename C, typename T>
+void setup(S &s, C &&cntCall, F &&msgCall, websocketpp::connection_hdl &connection, T && timer) {
     s.set_access_channels(websocketpp::log::alevel::all);
     s.clear_access_channels(websocketpp::log::alevel::frame_payload);
 
-    s.init_asio();
+    timerf = timer;
+    asioTimer.async_wait(tick);
+    s.init_asio(&io_service);
 
     s.set_open_handler([&connection, &cntCall, &s](auto hdl) {
         std::cout << "Connected to server" << std::endl;
@@ -95,23 +116,23 @@ void setup(S &s, C &&cntCall, F &&msgCall, websocketpp::connection_hdl &connecti
     );
 }
 
-template<typename F, typename C>
-void runServer(C &&cntCall, F &&msgCall, int port) {
+template<typename F, typename C, typename T>
+void runServer(C &&cntCall, F &&msgCall, int port, T && timer) {
     websocketpp::connection_hdl connection;
     using Server = websocketpp::server<websocketpp::config::asio>;
     Server server;
-    setup(server, cntCall, msgCall, connection);
+    setup(server, cntCall, msgCall, connection, timer);
     server.listen(port);
     server.start_accept();
     server.run();
 }
 
-template<typename F, typename C>
-void runClient(C &&cntCall, F &&msgCall, std::string const &uri) {
+template<typename F, typename C, typename T>
+void runClient(C &&cntCall, F &&msgCall, std::string const &uri, T && timer) {
     websocketpp::connection_hdl connection;
     using Client = websocketpp::client<websocketpp::config::asio_client>;
     Client client;
-    setup(client, cntCall, msgCall, connection);
+    setup(client, cntCall, msgCall, connection, timer);
 
     websocketpp::lib::error_code ec;
     Client::connection_ptr con = client.get_connection(uri, ec);

@@ -3,7 +3,6 @@
 #include <SmartNetwork/Relations.hpp>
 #include <fstream>
 #include <cereal/archives/binary.hpp>
-#include <sstream>
 #include <cereal/types/string.hpp>
 #include <filesystem>
 
@@ -11,6 +10,13 @@ int main() {
     Capabilities capabilities;
     DeviceMap map(&capabilities);
     Relations relations(&map, &capabilities);
+
+    auto save = [&]() {
+        std::ofstream os("data.cereal", std::ios::binary);
+        cereal::BinaryOutputArchive oarchive(os);
+        oarchive(capabilities, map, relations);
+        std::cout << "Saving data..." << std::endl;
+    };
 
     try {
         if (std::filesystem::exists("data.cereal")) {
@@ -36,13 +42,13 @@ int main() {
 
         if (j["mode"] == "server") {
             std::cout << "RUNNING SERVER" << std::endl;
-            runServer([] { return Json(); }, callback, j["server"].get<int>());
+            runServer([] { return Json(); }, callback, j["server"].get<int>(), save);
             return 0;
         }
 
         if (j["mode"] == "client") {
             std::cout << "RUNNING CLIENT" << std::endl;
-            runClient([] { return Json(); }, callback, j["client"].get<std::string>());
+            runClient([] { return Json(); }, callback, j["client"].get<std::string>(), save);
             return 0;
         }
     }
@@ -50,8 +56,5 @@ int main() {
         std::cout << "UNDEFINED ERROR: " << e.what() << std::endl;
     }
 
-    std::ofstream os("data.cereal", std::ios::binary);
-        cereal::BinaryOutputArchive oarchive(os);
-        oarchive(capabilities, map, relations);
-        std::cout << "Saving data..." << std::endl;
+    save();
 }

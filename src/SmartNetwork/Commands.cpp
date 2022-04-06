@@ -361,6 +361,10 @@ Json Commands::callback(Json const &json) {
             result = listLocations(json);
         } else if (command == "stop") {
             result = Json();
+        } else
+        {
+            result = Json();
+            result["error"] = "undefined_command";
         }
     } catch (std::exception const &e) {
         result = errorJson("", command, e.what());

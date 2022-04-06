@@ -36,7 +36,7 @@ int main() {
             std::string sPort = uri.substr(uri.rfind(':') + 1);
             int port = std::stoi(sPort);
             std::cout << "port: " << port;
-            runServer(cntCallback, msgCallback, port);
+            runServer(cntCallback, msgCallback, port, [](){});
             return 0;
         }
 
@@ -44,7 +44,7 @@ int main() {
             std::cout << "RUNNING TEST CLIENT" << std::endl;
             auto addr = "ws://127.0.0.1:" + std::to_string(j["server"].get<int>());
             std::cout << "Connecting to " << addr << std::endl;
-            runClient(cntCallback, msgCallback, addr);
+            runClient(cntCallback, msgCallback, addr, [](){});
             return 0;
         }
     }
