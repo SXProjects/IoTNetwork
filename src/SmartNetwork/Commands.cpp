@@ -292,7 +292,6 @@ Json Commands::addDevice(Json const &json) {
         throw std::runtime_error("device type '" + typeStr + "' is not exist");
     }
 
-
     auto wmName = json["work_mode"].get<std::string>();
     auto workMode = capabilities->findWorkMode(*deviceType, wmName);
     if (!workMode.has_value()) {

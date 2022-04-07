@@ -163,7 +163,7 @@ std::vector<Device> DeviceMap::find(std::string_view location, bool match) {
 }
 
 Device DeviceMap::add(std::string_view location, DeviceType deviceType, WorkMode initMode) {
-    devices.push_back(DeviceData{
+    DeviceData data{
             true,
             location.data(),
             deviceType,
@@ -171,7 +171,16 @@ Device DeviceMap::add(std::string_view location, DeviceType deviceType, WorkMode
             std::vector<time_point>(
                     capabilities->enumerateParameters(deviceType).size(), time_point::min()),
             true,
-    });
+    };
+
+    for (size_t i = 0; i < devices.size(); ++i) {
+        if (!devices[i].active) {
+            devices[i] = data;
+            return i;
+        }
+    }
+
+    devices.push_back(data);
     locations.addDevice(devices.back().path, devices.size() - 1);
     return devices.size() - 1;
 }
