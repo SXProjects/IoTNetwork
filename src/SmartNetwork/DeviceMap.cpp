@@ -174,6 +174,15 @@ Device DeviceMap::add(std::string_view location, DeviceType deviceType, WorkMode
     };
 
     for (size_t i = 0; i < devices.size(); ++i) {
+        if(devices[i].path == location)
+        {
+            remove(i);
+            devices[i] = data;
+            return i;
+        }
+    }
+
+    for (size_t i = 0; i < devices.size(); ++i) {
         if (!devices[i].active) {
             devices[i] = data;
             return i;
